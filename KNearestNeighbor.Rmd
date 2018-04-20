@@ -1,19 +1,85 @@
 ---
-title: "R Notebook"
+title: "KNN Notebook"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+K-Nearest Neighbor Algorithm
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
-
+Install packages to run kNN
 ```{r}
-plot(cars)
+library(class)
+```
+Creating a dataset
+```{r}
+new <- c(0.05,0.25)
+A <- c(0.0467,0.2471)
+B <- c(0.0533,0.1912)
+C <- c(0.0917,0.2794)
+data <-rbind(A,B,C)
+dimnames(data) <- list(c("Dark","Medium","Medium"),c("Age (MMN)", "Na/K (MMN)"))
+#Declare true classification of A, B and C.
+trueclass <-c("Dark","Medium","Medium")
+```
+Run kNN
+```{r}
+knn(data,new,cl=trueclass,k=3,prob = TRUE)
+```
+#Calculate the Euclidean Distance
+```{r}
+install.packages("fields")
+library(fields)
+together <- rbind(new,data)
+#The top row of the rdist are the distance values from the New rdist(together)
+rdist(together)
+```
+```{r}
+#Stretch the axes
+ds_newA <- sqrt((new[1]-A[1])^2 +(3*(new[2]-A[2]))^2)
+ds_newB <- sqrt((new[1]-B[1])^2 +(3*(new[2]-B[2]))^2)
+ds_newC <- sqrt((new[1]-C[1])^2 +(3*(new[2]-C[2]))^2)
+
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+```{r}
+distance<-c(ds_newA,ds_newB,ds_newC)
+BP<-c(120,122,130)
+data<-cbind(BP,data,distance)
+data
+```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+```{r}
+#Weights-inverse of distance
+weights<-(1/(distance)^2)
+sum_wi<-sum(weights)
+sum_wiyi<-sum(weights*data[,1])
+yhat_new<-sum_wiyi/sum_wi
+yhat_new
+```
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+Notes : Regarding kNN
 
+k-Nearest Neighbour Classification
+
+Description
+
+k-nearest neighbour classification for test set from training set. For each row of the test set, the k nearest (in Euclidean distance) training set vectors are found, and the classification is decided by majority vote, with ties broken at random. If there are ties for the kth nearest vector, all candidates are included in the vote.
+
+Usage
+
+knn(train, test, cl, k = 1, l = 0, prob = FALSE, use.all = TRUE)
+Arguments
+
+train	
+matrix or data frame of training set cases.
+test	
+matrix or data frame of test set cases. A vector will be interpreted as a row vector for a single case.
+cl	
+factor of true classifications of training set
+k	
+number of neighbours considered.
+l	
+minimum vote for definite decision, otherwise doubt. (More precisely, less than k-l dissenting votes are allowed, even if k is increased by ties.)
+prob	
+If this is true, the proportion of the votes for the winning class are returned as attribute prob.
+use.all	
+controls handling of ties. If true, all distances equal to the kth largest are included. If false, a random selection of distances equal to the kth is chosen to use exactly k neighbours.
